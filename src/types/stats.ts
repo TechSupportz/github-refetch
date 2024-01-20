@@ -58,23 +58,19 @@ export type CodeTopLanguages = {
     count: number
 }
 
-export type CodeMonthsLanguages = {
-    name: string
-    count: number
-}
-
-export type CodeMonths = {
-    month: string
-    languages: CodeMonthsLanguages[]
-}
-
 export type Code = {
     personality: "E" | "S" | "G" | "M" | "D" | "W" | "A" | "F" | "C"
     deleted: number
     added: number
     topLanguages: CodeTopLanguages[]
     moodLanguage: string
-    months: CodeMonths[]
+    months: any[]
+    /* 
+	months: {
+		name: string
+		[key: string]: number
+	}[]
+	*/
 }
 
 export type Stats = {
