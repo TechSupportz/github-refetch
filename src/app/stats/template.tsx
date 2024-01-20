@@ -26,7 +26,9 @@ const StatsLayout = ({
 
     return (
         <div className="flex h-full flex-col justify-between gap-4 p-8">
-            <section className="h-4/5 rounded-2xl border-4 border-white p-8">
+            <section
+                className={`${currentStepIndex === 0 ? "bg-commit" : currentStepIndex === 1 ? "bg-repo" : "bg-code"} h-4/5 rounded-2xl border-4 border-white bg-cover p-8`}
+            >
                 {children}
             </section>
             <div className="flex h-1/5 items-center justify-between p-2">

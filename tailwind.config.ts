@@ -25,6 +25,11 @@ const config = {
                 sans: "--font-neon",
                 display: "--font-argon",
             },
+            backgroundImage: {
+                commit: "url('/backgrounds/commit.svg')",
+                repo: "url('/backgrounds/repo.svg')",
+                code: "url('/backgrounds/code.svg')",
+            },
             colors: {
                 "gh-bg": "#0E1116",
                 "gh-green": "#2dba4e",
