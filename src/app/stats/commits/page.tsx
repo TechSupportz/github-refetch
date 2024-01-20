@@ -1,7 +1,5 @@
-import React from "react"
-
-const page = () => {
-	return <div className="">page</div>
+const CommitsPage = () => {
+    return <div className="">commits</div>
 }
 
-export default page
+export default CommitsPage
