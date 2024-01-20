@@ -18,6 +18,7 @@ module.exports = {
                 commit: "url('/backgrounds/commit.svg')",
                 repo: "url('/backgrounds/repo.svg')",
                 code: "url('/backgrounds/code.svg')",
+				summary: "url('/backgrounds/summary.svg')",
             },
             colors: {
                 "gh-bg": "#0E1116",

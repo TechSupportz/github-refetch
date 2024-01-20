@@ -48,6 +48,12 @@ const StatsLayout = ({
                     >
                         <ArrowFatRight size={64} weight="duotone" />
                     </KeyButton>
+                    <KeyButton
+                        url={`/summary`}
+                        className={`${currentStepIndex === stepRoute.length - 1 ? "block" : "hidden"}`}
+                    >
+                        <ArrowFatRight size={64} weight="duotone" />
+                    </KeyButton>
                 </div>
             </div>
         </div>
