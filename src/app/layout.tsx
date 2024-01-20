@@ -1,8 +1,16 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] })
+const argon = localFont({
+    src: "./fonts/Argon.ttf",
+    variable: "--font-argon",
+})
+
+const neon = localFont({
+    src: "./fonts/Neon.ttf",
+    variable: "--font-neon",
+})
 
 export const metadata: Metadata = {
     title: "Create Next App",
@@ -16,7 +24,11 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${inter.className} bg-gh-bg text-white`}>{children}</body>
+            <body
+                className={`${neon.className} ${argon.className} bg-gh-bg text-white`}
+            >
+                {children}
+            </body>
         </html>
     )
 }
