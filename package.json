@@ -11,13 +11,15 @@
 	"dependencies": {
 		"@phosphor-icons/react": "^2.0.15",
 		"@tremor/react": "^3.13.2",
+		"@visx/scale": "^3.5.0",
+		"@visx/text": "^3.3.0",
+		"@visx/wordcloud": "^3.3.0",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.0",
 		"lucide-react": "^0.312.0",
 		"luxon": "^3.4.4",
 		"next": "14.1.0",
 		"react": "^18",
-		"react-d3-cloud": "^1.0.6",
 		"react-dom": "^18",
 		"tailwind-merge": "^2.2.0",
 		"tailwindcss-animate": "^1.0.7"
