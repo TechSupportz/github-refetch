@@ -59,7 +59,7 @@ export type CodeTopLanguages = {
 }
 
 export type Code = {
-    personality: "E" | "S" | "G" | "M" | "D" | "W" | "A" | "F" | "C"
+    personality: "E" | "S" | "G" | "M" | "D" | "W" | "A" | "F" | "C" | "J"
     deleted: number
     added: number
     topLanguages: CodeTopLanguages[]

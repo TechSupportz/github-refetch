@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { flatExtMap, languageMapping } from "../utils/languageMapping"
 import {
     CodeTopLanguages,
+    Commits,
     CommitsCommitStreak,
     CommitsTimeCount,
     CommitsWeekdatesCount,
@@ -110,7 +111,7 @@ export async function POST() {
         })
     }
 
-    // get the top
+    topLanguages = topLanguages.sort((a, b) => b.count - a.count)
 
     const commitMsgs = commitData.flatMap(commit => commit.message.split(" "))
     // count the occurences of each word inside commit msgs, and make it non case sensitive
@@ -158,10 +159,134 @@ export async function POST() {
 
     // get the repo created in 2023 with the most commits
 
+    const getCommitPersonality = (commitDateTime: Date[]): "O" | "N" | "H" => {
+        let officeWorkerCount = 0
+        let hobbyistCount = 0
+        let nightOwlCount = 0
+
+        for (const commitDate of commitDateTime) {
+            const day = commitDate.getDay()
+            const hour = commitDate.getHours()
+
+            if (day >= 1 && day <= 5) {
+                if (hour >= 9 && hour <= 17) {
+                    officeWorkerCount++
+                } else if (hour > 17 || hour < 9) {
+                    nightOwlCount++
+                }
+            } else if (day === 0 || day === 6) {
+                if (hour >= 9 && hour <= 17) {
+                    hobbyistCount++
+                } else if (hour > 17 || hour < 9) {
+                    nightOwlCount++
+                }
+            }
+        }
+
+        console.log(officeWorkerCount, hobbyistCount, nightOwlCount)
+
+        if (
+            officeWorkerCount > hobbyistCount &&
+            officeWorkerCount > nightOwlCount
+        ) {
+            return "O"
+        } else if (
+            hobbyistCount > officeWorkerCount &&
+            hobbyistCount > nightOwlCount
+        ) {
+            return "H"
+        } else {
+            return "N"
+        }
+    }
+
+    const getRepoPersonality = (): "Q" | "T" | "P" | "D" | "C" => {
+        if (issuesCount === 10) {
+            return "Q"
+        } else if (prCount === 20) {
+            return "T"
+        } else if (abandonedCount.length === repoCreatedCount) {
+            return "P"
+        } else if (abandonedCount.length > repoCreatedCount) {
+            return "D"
+        } else {
+            return "C"
+        }
+    }
+
+    const getCodePersonality = ():
+        | "E"
+        | "S"
+        | "G"
+        | "M"
+        | "D"
+        | "W"
+        | "A"
+        | "F"
+        | "C"
+        | "J" => {
+        console.log(topLanguages[0].name.toLowerCase())
+
+        switch (topLanguages[0].name.toLowerCase()) {
+            case "java":
+                return "E"
+            case "go":
+            case "rust":
+            case "c":
+            case "c++":
+                return "S"
+            case "c#":
+            case "gdscript":
+            case "lua":
+                return "G"
+            case "dart":
+            case "kotlin":
+            case "swift":
+                return "M"
+            case "docker":
+            case "shell":
+            case "terraform":
+                return "D"
+            case "typescript":
+            case "javascript":
+            case "php":
+            case "html":
+            case "css":
+                return "W"
+            case "python":
+            case "jupyter notebook":
+            case "r":
+            case "matlab":
+                return "A"
+            case "ocaml":
+                return "F"
+            case "solidity":
+                return "C"
+            default:
+                return "J"
+        }
+    }
+
+    const commitPersonality: "O" | "N" | "H" = getCommitPersonality(
+        commitData.map(commit => commit.dateTimeObj.toJSDate()),
+    )
+    const repoPersonality: "Q" | "T" | "P" | "D" | "C" = getRepoPersonality()
+    const codePersonality:
+        | "E"
+        | "S"
+        | "G"
+        | "M"
+        | "D"
+        | "W"
+        | "A"
+        | "F"
+        | "C"
+        | "J" = getCodePersonality()
+
     return NextResponse.json(
         {
             commits: {
-                personality: "O",
+                personality: commitPersonality,
                 wordCloud: wordCloud.slice(0, 20).map((word: any) => ({
                     text: word[0],
                     value: word[1],
@@ -174,7 +299,7 @@ export async function POST() {
                 },
             },
             repo: {
-                personality: "Q",
+                personality: repoPersonality,
                 createdRepo: {
                     count: repoCreatedCount,
                     favourite: {
@@ -190,12 +315,10 @@ export async function POST() {
                     .slice(0, 10),
             },
             code: {
-                personality: "E",
+                personality: codePersonality,
                 deleted: deletedCount,
                 added: addedCount,
-                topLanguages: topLanguages
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 10),
+                topLanguages: topLanguages.slice(0, 10),
                 moodLanguage: topLanguages.at(
                     Math.floor(Math.random() * topLanguages.length),
                 )?.name!,
@@ -385,7 +508,7 @@ const getCommitsListData = async (
         page++
     }
 
-    console.log(commitUrls)
+    // console.log(commitUrls)
 
     return commitUrls
 }
