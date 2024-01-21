@@ -293,10 +293,7 @@ export async function POST() {
                 })),
                 weekdatesCount: weekdatesCount,
                 timeCount: timecount,
-                commitStreak: {
-                    day: "19-01-24",
-                    count: 1,
-                },
+                commitCount: commitData.length,
             },
             repo: {
                 personality: repoPersonality,
