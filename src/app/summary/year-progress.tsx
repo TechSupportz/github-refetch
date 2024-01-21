@@ -18,7 +18,6 @@ const TimeDonut = ({ totalDaysCommitted }: YearProgressProps) => {
                 strokeWidth={15}
                 size="md"
                 className="m-auto"
-                tooltip="Percentage of year complete"
             />
         </div>
     )

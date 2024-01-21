@@ -22,7 +22,7 @@ const yearEnd = DateTime.fromObject({ year: year }, { zone: "utc" }).endOf(
 
 export async function POST() {
     const token = process.env.GH_TOKEN
-    const username = process.env.USER!
+    const username = process.env.USERNAME!
 
     console.log(yearStart, yearEnd)
 
