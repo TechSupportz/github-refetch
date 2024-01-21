@@ -1,6 +1,7 @@
 import Card from "@/components/card"
 import TerminalCode from "@/components/terminal-code"
 import StackedBar from "./stacked-bar"
+import { DeltaBar } from "@tremor/react"
 
 const CodePage = () => {
     return (
@@ -8,7 +9,28 @@ const CodePage = () => {
             <div className="col-span-5 row-span-2">
                 <TerminalCode text="git fetch code" />
             </div>
-            <Card className="col-span-3 row-span-2 h-full w-full">huh</Card>
+            <Card className="col-span-3 row-span-2 h-full w-full">
+                <div className="flex flex-col gap-6">
+                    <div>
+                        <DeltaBar value={70} />
+                        <h1 className="mb-2 mt-4 text-xl font-bold">
+                            You added ____ lines of code
+                        </h1>
+                        <h2 className="text-lg font-semibold italic">
+                            Lets hope they actually work{" "}
+                        </h2>
+                    </div>
+                    <div>
+                        <DeltaBar value={-30} />
+                        <h1 className="mb-2 mt-4 text-xl font-bold">
+                            You yeeted out ____ lines of useless code
+                        </h1>
+                        <h2 className="text-lg font-semibold italic">
+                            Wonder if this broke anything?{" "}
+                        </h2>
+                    </div>
+                </div>
+            </Card>
             <Card className="col-span-4 row-span-3 h-full w-full">huh</Card>
             <Card className="col-span-8 row-span-2 h-full w-full">
                 <StackedBar
