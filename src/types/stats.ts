@@ -23,7 +23,7 @@ export type Commits = {
     wordCloud: CommitsWordCloud[]
     weekdatesCount: CommitsWeekdatesCount[]
     timeCount: CommitsTimeCount[]
-    commitStreak: CommitsCommitStreak[]
+    commitStreak: CommitsCommitStreak
 }
 
 export type RepoCreatedRepoFavourite = {

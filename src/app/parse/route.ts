@@ -2,6 +2,14 @@ import { FormattedRepos } from "@/types/githubResponses"
 import { DateTime } from "luxon"
 import { NextResponse } from "next/server"
 import { flatExtMap, languageMapping } from "../utils/languageMapping"
+import {
+    CodeTopLanguages,
+    CommitsCommitStreak,
+    CommitsTimeCount,
+    CommitsWeekdatesCount,
+    RepoContribution,
+    Stats,
+} from "@/types/stats"
 
 const year = 2023
 const yearStart = DateTime.fromObject({ year: year }, { zone: "utc" }).startOf(
@@ -33,12 +41,22 @@ export async function POST() {
 
     let issuesCount: number = 0
     let prCount: number = 0
-    let abandonedCount: number = 0
+    let abandonedCount: string[] = []
     let commitData = []
+    let favouriteRepo = {
+        name: "",
+        url: "",
+        commitCount: 0,
+    }
+    let repoCreatedCount = 0
+    let repoContribution: RepoContribution[] = []
+    let deletedCount = 0
+    let addedCount = 0
+    let topLanguages: CodeTopLanguages[] = []
 
     for (const repo of repos) {
-        abandonedCount += repo.isAbandoned ? 1 : 0
-
+        repo.isAbandoned && abandonedCount.push(repo.uri)
+        const repoUrl = `https://api.github.com/repos/${repo.uri}`
         if (repo.has_issues) {
             const { issuesCount: issues, prCount: pr } = await getIssuesData(
                 options,
@@ -55,13 +73,208 @@ export async function POST() {
         const commitUrls = await getCommitsListData(options, repo.uri, username)
 
         for (const url of commitUrls) {
-            commitData.push(await getCommitData(options, url))
+            const commit = await getCommitData(options, url)
+            commitData.push(commit)
+            deletedCount += commit.deletions
+            addedCount += commit.additions
+
+            if (commit.files.length > 0) {
+                for (const file of commit.files) {
+                    const language = file.language!
+                    const index = topLanguages.findIndex(
+                        lang => lang.name === language,
+                    )
+                    if (index !== -1) topLanguages[index].count++
+                    else topLanguages.push({ name: language, count: 1 })
+                }
+            }
         }
+
+        if (DateTime.fromISO(repo.created_at).year === year) {
+            repoCreatedCount++
+            if (commitUrls.length > favouriteRepo.commitCount) {
+                favouriteRepo = {
+                    name: repo.uri,
+                    url: repoUrl,
+                    commitCount: commitUrls.length,
+                }
+            }
+        }
+
+        repoContribution.push({
+            name: repo.uri,
+            url: repoUrl,
+            stars: repo.stargazers_count,
+            language: repo.language,
+            commitCount: commitUrls.length,
+        })
     }
 
+    // get the top
+
+    const commitMsgs = commitData.flatMap(commit => commit.message.split(" "))
+    // count the occurences of each word inside commit msgs, and make it non case sensitive
+    let wordCloud = commitMsgs.reduce((acc, word) => {
+        const wordLower = word.toLowerCase()
+        if (acc[wordLower]) acc[wordLower]++
+        else acc[wordLower] = 1
+        return acc
+    }, {})
+    // add a sort function to sort the wordCloud object by value
+    wordCloud = Object.entries(wordCloud).sort((a: any, b: any) => b[1] - a[1])
     // return Response.json({ repoNames })
+
+    const weekDatesCountObj = commitData.reduce((acc: any, commit: any) => {
+        if (acc[commit.weekdate]) acc[commit.weekdate]++
+        else acc[commit.weekdate] = 1
+        return acc
+    }, {})
+
+    // @ts-expect-error
+    const weekdatesCount: CommitsWeekdatesCount[] = Object.entries(
+        weekDatesCountObj,
+    ).map(([day, count]) => {
+        return {
+            day,
+            "Number of commits": count ?? 0,
+        }
+    })
+
+    const timeCountObj = commitData.reduce((acc: any, commit: any) => {
+        if (acc[commit.hour]) acc[commit.hour]++
+        else acc[commit.hour] = 1
+        return acc
+    }, {})
+
+    // @ts-expect-error
+    const timecount: CommitsTimeCount[] = Object.entries(timeCountObj).map(
+        ([hour, count]) => {
+            return {
+                hour: parseInt(hour),
+                count: count ?? 0,
+            }
+        },
+    )
+
+    // get the repo created in 2023 with the most commits
+
     return NextResponse.json(
-        { issuesCount, prCount, abandonedCount, commitData },
+        {
+            commits: {
+                personality: "O",
+                wordCloud: wordCloud.slice(0, 20).map((word: any) => ({
+                    text: word[0],
+                    value: word[1],
+                })),
+                weekdatesCount: weekdatesCount,
+                timeCount: timecount,
+                commitStreak: {
+                    day: "19-01-24",
+                    count: 1,
+                },
+            },
+            repo: {
+                personality: "Q",
+                createdRepo: {
+                    count: repoCreatedCount,
+                    favourite: {
+                        name: favouriteRepo.name,
+                        url: favouriteRepo.url,
+                    },
+                },
+                abandoned: abandonedCount,
+                issueCount: issuesCount,
+                prCount: prCount,
+                contributionList: repoContribution
+                    .sort((a, b) => b.commitCount - a.commitCount)
+                    .slice(0, 10),
+            },
+            code: {
+                personality: "E",
+                deleted: deletedCount,
+                added: addedCount,
+                topLanguages: topLanguages
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 10),
+                moodLanguage: topLanguages.at(
+                    Math.floor(Math.random() * topLanguages.length),
+                )?.name!,
+                months: [
+                    {
+                        name: "January",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "January",
+                        ).length,
+                    },
+                    {
+                        name: "February",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "February",
+                        ).length,
+                    },
+                    {
+                        name: "March",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "March",
+                        ).length,
+                    },
+                    {
+                        name: "April",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "April",
+                        ).length,
+                    },
+                    {
+                        name: "May",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "May",
+                        ).length,
+                    },
+                    {
+                        name: "June",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "June",
+                        ).length,
+                    },
+                    {
+                        name: "July",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "July",
+                        ).length,
+                    },
+                    {
+                        name: "August",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "August",
+                        ).length,
+                    },
+                    {
+                        name: "September",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "September",
+                        ).length,
+                    },
+                    {
+                        name: "October",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "October",
+                        ).length,
+                    },
+                    {
+                        name: "November",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "November",
+                        ).length,
+                    },
+                    {
+                        name: "December",
+                        count: commitData.filter(
+                            (commit: any) => commit.month === "December",
+                        ).length,
+                    },
+                ],
+            },
+        } as Stats,
         { status: 200 },
     )
 }
@@ -160,7 +373,13 @@ const getCommitsListData = async (
         const json = await res.json()
         if (json.length === 0 || res.status !== 200) break
 
-        commitUrls = commitUrls.concat(json.map((commit: any) => commit.url))
+        commitUrls = commitUrls.concat(
+            json
+                .filter(
+                    (commit: any) => !commit.commit.message.includes("Merge"),
+                )
+                .map((commit: any) => commit.url),
+        )
 
         if (json.length < 100) break
         page++
@@ -197,6 +416,8 @@ const getCommitData = async (requestOptions: any, url: string) => {
         message: json.commit.message,
         weekdate: commitDateTime.weekdayLong,
         hour: commitDateTime.hour,
+        dateTimeObj: commitDateTime,
+        month: commitDateTime.monthLong,
         deletions: json.stats.deletions,
         additions: json.stats.additions,
         files: commitData,
