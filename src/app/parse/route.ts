@@ -20,9 +20,27 @@ const yearEnd = DateTime.fromObject({ year: year }, { zone: "utc" }).endOf(
     "year",
 )
 
+const blackListExt = [
+    "xml",
+    "json",
+    "ini",
+    "yaml",
+    "yml",
+    "toml",
+    "lock",
+    "lockfile",
+    "svg",
+]
+
+const monthsMapping = {
+    1: "January",
+    2: "February",
+}
+
 export async function POST() {
     const token = process.env.GH_TOKEN
     const username = process.env.USER!
+    const isAuthenticated = false
 
     console.log(yearStart, yearEnd)
 
@@ -38,7 +56,7 @@ export async function POST() {
         },
     }
 
-    const repos = await getReposData(options, username)
+    const repos = await getReposData(options, username, isAuthenticated)
 
     let issuesCount: number = 0
     let prCount: number = 0
@@ -54,6 +72,20 @@ export async function POST() {
     let deletedCount = 0
     let addedCount = 0
     let topLanguages: CodeTopLanguages[] = []
+    let topLanguagesByMonth = {
+        January: {},
+        February: {},
+        March: {},
+        April: {},
+        May: {},
+        June: {},
+        July: {},
+        August: {},
+        September: {},
+        October: {},
+        November: {},
+        December: {},
+    }
 
     for (const repo of repos) {
         repo.isAbandoned && abandonedCount.push(repo.uri)
@@ -85,8 +117,26 @@ export async function POST() {
                     const index = topLanguages.findIndex(
                         lang => lang.name === language,
                     )
-                    if (index !== -1) topLanguages[index].count++
-                    else topLanguages.push({ name: language, count: 1 })
+
+                    if (index !== -1) {
+                        topLanguages[index].count++
+                    } else {
+                        topLanguages.push({ name: language, count: 1 })
+                    }
+
+                    if (
+                        // @ts-expect-error
+                        topLanguagesByMonth[commit.month!][language] ===
+                        undefined
+                    ) {
+                        // @ts-expect-error
+                        topLanguagesByMonth[commit.month!][language] =
+                            file.additions
+                    } else {
+                        // @ts-expect-error
+                        topLanguagesByMonth[commit.month!][language] +=
+                            file.additions
+                    }
                 }
             }
         }
@@ -285,6 +335,7 @@ export async function POST() {
 
     return NextResponse.json(
         {
+            topLanguagesByMonth,
             commits: {
                 personality: commitPersonality,
                 wordCloud: wordCloud.slice(0, 20).map((word: any) => ({
@@ -307,9 +358,9 @@ export async function POST() {
                 abandoned: abandonedCount,
                 issueCount: issuesCount,
                 prCount: prCount,
-                contributionList: repoContribution
-                    .sort((a, b) => b.commitCount - a.commitCount)
-                    .slice(0, 10),
+                contributionList: repoContribution.sort(
+                    (a, b) => b.commitCount - a.commitCount,
+                ),
             },
             code: {
                 personality: codePersonality,
@@ -319,93 +370,90 @@ export async function POST() {
                 moodLanguage: topLanguages.at(
                     Math.floor(Math.random() * topLanguages.length),
                 )?.name!,
-                months: [
-                    {
-                        name: "January",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "January",
-                        ).length,
-                    },
-                    {
-                        name: "February",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "February",
-                        ).length,
-                    },
-                    {
-                        name: "March",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "March",
-                        ).length,
-                    },
-                    {
-                        name: "April",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "April",
-                        ).length,
-                    },
-                    {
-                        name: "May",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "May",
-                        ).length,
-                    },
-                    {
-                        name: "June",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "June",
-                        ).length,
-                    },
-                    {
-                        name: "July",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "July",
-                        ).length,
-                    },
-                    {
-                        name: "August",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "August",
-                        ).length,
-                    },
-                    {
-                        name: "September",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "September",
-                        ).length,
-                    },
-                    {
-                        name: "October",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "October",
-                        ).length,
-                    },
-                    {
-                        name: "November",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "November",
-                        ).length,
-                    },
-                    {
-                        name: "December",
-                        count: commitData.filter(
-                            (commit: any) => commit.month === "December",
-                        ).length,
-                    },
-                ],
+                months: Object.keys(topLanguagesByMonth).map(month => {
+                    const top3Languages = topLanguages
+                        .slice(0, 3)
+                        .map(lang => lang.name)
+                    const monthObj = Object.keys(
+                        // @ts-expect-error
+                        topLanguagesByMonth[month],
+                    )
+                        .sort(
+                            (a: any, b: any) =>
+                                // @ts-expect-error
+                                topLanguagesByMonth[month][b] -
+                                // @ts-expect-error
+                                topLanguagesByMonth[month][a],
+                        )
+                        .map((lang: any) => {
+                            // @ts-expect-error
+                            return { [lang]: topLanguagesByMonth[month][lang] }
+                        })
+
+                    console.log(monthObj, top3Languages)
+
+                    //
+
+                    if (monthObj.length === 0)
+                        return {
+                            date: month,
+                            [top3Languages[0]]: 0,
+                            [top3Languages[1]]: 0,
+                            [top3Languages[2]]: 0,
+                        }
+
+                    return {
+                        date: month,
+                        // @ts-expect-error
+
+                        [top3Languages[0]]:
+                            monthObj.find(
+                                (obj: any) =>
+                                    Object.keys(obj)[0] === top3Languages[0],
+                                // @ts-expect-error
+                            )?.[top3Languages[0]] ?? 0,
+
+                        [top3Languages[1]]:
+                            monthObj.find(
+                                (obj: any) =>
+                                    Object.keys(obj)[0] === top3Languages[1],
+                                // @ts-expect-error
+                            )?.[top3Languages[1]] ?? 0, // @ts-expect-error
+                        [top3Languages[2]]:
+                            monthObj.find(
+                                (obj: any) =>
+                                    Object.keys(obj)[0] === top3Languages[2],
+                                // @ts-expect-error
+                            )?.[top3Languages[2]] ?? 0,
+                    }
+
+                    // return {
+                    //     date: month,
+                    //     [monthObj[0][0]]: monthObj[0][1],
+                    //     [monthObj[1][0]]: monthObj[1][1],
+                    //     [monthObj[2][0]]: monthObj[2][1],
+                    // }
+                }),
             },
         } as Stats,
         { status: 200 },
     )
 }
 
-const getReposData = async (requestOptions: any, username: string) => {
+const getReposData = async (
+    requestOptions: any,
+    username: string,
+    isAuthenticated: boolean,
+) => {
     let page = 1
     let userRepos: FormattedRepos[] = []
+    let reposUri = isAuthenticated
+        ? `https://api.github.com/user/repos`
+        : `https://api.github.com/users/${username}/repos`
 
     while (true) {
         const res = await fetch(
-            `https://api.github.com/user/repos?sort=pushed&per_page=100&page=${page}`,
+            `${reposUri}?sort=pushed&per_page=100&page=${page}`,
             requestOptions,
         )
 
@@ -521,7 +569,7 @@ const getCommitData = async (requestOptions: any, url: string) => {
 
     for (const file of json.files) {
         const ext = file.filename.split(".").at(-1)
-        if (flatExtMap.includes(ext)) {
+        if (flatExtMap.includes(ext) && !blackListExt.includes(ext)) {
             commitData.push({
                 language: Object.keys(languageMapping).find(key =>
                     // @ts-expect-error
