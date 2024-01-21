@@ -8,11 +8,13 @@ export type WeekdateProps = {
 const Weekdate = ({ data }: WeekdateProps) => {
     return (
         <BarChart
+		className="py-4"
             data={data}
-            index="name"
+            index="day"
             categories={["Number of commits"]}
             colors={["emerald"]}
             yAxisWidth={48}
+			
         />
     )
 }

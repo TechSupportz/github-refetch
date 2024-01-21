@@ -1,8 +1,13 @@
-// "use client"
-// import { Wordcloud } from "@visx/wordcloud"
+"use client"
+import { CommitsWordCloud } from "@/types/stats"
+import WordCloud from "react-d3-cloud"
 
-// const CustomWordCloud = () => {
-//     return <Wordcloud></Wordcloud>
-// }
+export type WordCloudProps = {
+    data: CommitsWordCloud[]
+}
 
-// export default CustomWordCloud
+const CustomWordCloud = ({ data }: WordCloudProps) => {
+    return <WordCloud data={data} rotate={0}/>
+}
+
+export default CustomWordCloud
