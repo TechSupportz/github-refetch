@@ -73,8 +73,17 @@ export type Code = {
 	*/
 }
 
+export type Summary = {
+    daysCommitted: number
+    topLanguage: {
+        name: string
+        totalCount: number
+    }
+}
+
 export type Stats = {
     commits: Commits
     repo: Repo
     code: Code
+    summary: Summary
 }

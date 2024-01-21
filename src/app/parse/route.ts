@@ -394,6 +394,22 @@ export async function POST() {
                     },
                 ],
             },
+            summary: {
+                daysCommitted: Object.entries(
+                    commitData.reduce((acc: any, commit: any) => {
+                        if (acc[commit.dateTimeObj.toISODate()]) {
+                            acc[commit.dateTimeObj.toISODate()]++
+                        } else {
+                            acc[commit.dateTimeObj.toISODate()] = 1
+                        }
+                        return acc
+                    }, {}),
+                ).length,
+                topLanguage: {
+                    name: topLanguages[0].name,
+                    totalCount: topLanguages.length,
+                },
+            },
         } as Stats,
         { status: 200 },
     )
