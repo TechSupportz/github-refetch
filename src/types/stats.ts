@@ -23,7 +23,7 @@ export type Commits = {
     wordCloud: CommitsWordCloud[]
     weekdatesCount: CommitsWeekdatesCount[]
     timeCount: CommitsTimeCount[]
-    commitStreak: CommitsCommitStreak[]
+    commitCount: number
 }
 
 export type RepoCreatedRepoFavourite = {
@@ -59,7 +59,7 @@ export type CodeTopLanguages = {
 }
 
 export type Code = {
-    personality: "E" | "S" | "G" | "M" | "D" | "W" | "A" | "F" | "C"
+    personality: "E" | "S" | "G" | "M" | "D" | "W" | "A" | "F" | "C" | "J"
     deleted: number
     added: number
     topLanguages: CodeTopLanguages[]
