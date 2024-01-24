@@ -17,7 +17,7 @@ const SummaryPage = async () => {
     const user = process.env.USERNAME
     const res = await fetch("http://localhost:3000/parse", {
         method: "POST",
-        next: { revalidate: 0 },
+        // next: { revalidate: 0 },
     })
 
     const data = (await res.json()) as Stats

@@ -1,6 +1,6 @@
 import { FormattedRepos } from "@/types/githubResponses"
 import { DateTime } from "luxon"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { flatExtMap, languageMapping } from "../utils/languageMapping"
 import {
     CodeTopLanguages,
@@ -40,6 +40,8 @@ const monthsMapping = {
 export async function POST() {
     const token = process.env.GH_TOKEN
     const username = process.env.USERNAME!
+
+    const isAuthenticated = true
 
     console.log(yearStart, yearEnd)
 
@@ -403,7 +405,6 @@ export async function POST() {
 
                     return {
                         date: month,
-                        // @ts-expect-error
 
                         [top3Languages[0]]:
                             monthObj.find(
@@ -417,7 +418,7 @@ export async function POST() {
                                 (obj: any) =>
                                     Object.keys(obj)[0] === top3Languages[1],
                                 // @ts-expect-error
-                            )?.[top3Languages[1]] ?? 0, // @ts-expect-error
+                            )?.[top3Languages[1]] ?? 0,
                         [top3Languages[2]]:
                             monthObj.find(
                                 (obj: any) =>

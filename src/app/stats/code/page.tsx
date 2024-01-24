@@ -16,7 +16,7 @@ const CodePage = async () => {
                 <TerminalCode text="git fetch code" />
                 <br />
                 <h1 className="text-3xl font-bold">You are type:</h1>
-                <KeyButton>{data.repo.personality}</KeyButton>
+                <KeyButton>{data.code.personality}</KeyButton>
             </div>
             <Card className="col-span-3 row-span-2 h-full w-full">
                 <div className="flex flex-col gap-6">
@@ -37,7 +37,7 @@ const CodePage = async () => {
                     </div>
                     <div>
                         <DeltaBar
-                            value={Math.round(
+                            value={-Math.round(
                                 (data.code.deleted /
                                     (data.code.added + data.code.deleted)) *
                                     100,
